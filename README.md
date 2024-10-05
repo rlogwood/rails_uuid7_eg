@@ -1,24 +1,41 @@
-# README
+rails g migration EnablePgcrypto
 
-This README would normally document whatever steps are necessary to get the
-application up and running.
+```ruby
+class EnablePgcrypto < ActiveRecord::Migration[7.2]
+  def change
+    enable_extension 'pgcrypto'
+  end
+end
 
-Things you may want to cover:
+```
 
-* Ruby version
 
-* System dependencies
+add to config/application.rb
+```ruby
+    config.generators do |generate|
+      generate.orm :active_record, primary_key_type: :uuid
+    end
 
-* Configuration
+```
 
-* Database creation
 
-* Database initialization
+app/model/application_record.rb
+```ruby
+require 'securerandom'
 
-* How to run the test suite
+class ApplicationRecord < ActiveRecord::Base
+  primary_abstract_class
 
-* Services (job queues, cache servers, search engines, etc.)
+  before_create :generate_uuid_v7
 
-* Deployment instructions
+  private
 
-* ...
+    def generate_uuid_v7
+      return if self.class.attribute_types['id'].type != :uuid
+
+      #self.id ||= UUID7.generate
+      self.id ||= SecureRandom.uuid_v7
+    end  
+end
+
+```
